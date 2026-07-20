@@ -614,3 +614,61 @@ function calistir(sahneler, eksik){
     return;
   }
 
+  tur.on("scenechange", guncelle);
+  tur.on("load", function(){ setTimeout(kapat, 1250); });
+  tur.on("error", function(msg){
+    hataGoster("Panorama yüklenemedi", msg + yerelUyari());
+  });
+  guncelle(MEKANLAR[0].id);
+
+  if(eksik === MEKANLAR.length){
+    not.innerHTML = "Fotoğraf bulunamadı — geçici görsellerle önizleme.<br>Kendi 360° fotoğraflarınızı <code>gorseller/</code> klasörüne ekleyin.";
+  }else if(eksik){
+    not.textContent = eksik + " mekânın fotoğrafı bulunamadı, yerine geçici görsel kullanılıyor.";
+  }
+  btnBasla.classList.add("gorun");
+  setTimeout(kapat, eksik ? 3200 : 1900);
+}
+
+function yerelUyari(){
+  return location.protocol === "file:"
+    ? "<br><br>Dosyayı doğrudan çift tıklayarak açtınız. Chrome bu şekilde fotoğrafları " +
+      "360° motoruna veremez. Klasörde terminal açıp <code>python -m http.server 8000</code> " +
+      "yazın, sonra <code>localhost:8000</code> adresine gidin."
+    : "";
+}
+
+/* ---- kontroller ---- */
+$("#btn-yakin").onclick = function(){ if(tur) tur.setHfov(tur.getHfov() - 14); };
+$("#btn-uzak").onclick  = function(){ if(tur) tur.setHfov(tur.getHfov() + 14); };
+$("#btn-donme").onclick = function(e){
+  if(!tur) return;
+  var b = e.currentTarget, acik = b.getAttribute("aria-pressed") === "true";
+  if(acik) tur.stopAutoRotate(); else tur.startAutoRotate(-2.2);
+  b.setAttribute("aria-pressed", String(!acik));
+};
+$("#btn-tam").onclick = function(e){
+  var b = e.currentTarget;
+  if(!document.fullscreenElement){
+    (document.documentElement.requestFullscreen || function(){}).call(document.documentElement);
+    b.setAttribute("aria-pressed","true");
+  }else{
+    (document.exitFullscreen || function(){}).call(document);
+    b.setAttribute("aria-pressed","false");
+  }
+};
+$("#btn-bilgi").onclick = function(){ $("#pencere").classList.add("acik"); };
+$("#btn-kapat").onclick = function(){ $("#pencere").classList.remove("acik"); };
+$("#pencere").onclick = function(e){ if(e.target.id === "pencere") $("#pencere").classList.remove("acik"); };
+document.addEventListener("keydown", function(e){ if(e.key === "Escape") $("#pencere").classList.remove("acik"); });
+$("#serit-dugme").onclick = function(e){
+  var s = $("#serit"), kapali = s.classList.toggle("kapali"), b = e.currentTarget;
+  b.setAttribute("aria-expanded", String(!kapali));
+  b.textContent = kapali ? "Mekânlar ▲" : "Mekânlar";
+};
+
+baslat();
+})();
+</script>
+</body>
+</html>
